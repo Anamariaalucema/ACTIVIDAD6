@@ -1,0 +1,143 @@
+from dataclasses import dataclass
+import random 
+from typing import Optional
+class carta: 
+    tapada = bool 
+    def __init__(self, pinta:str, valor) -> None:
+        self.pinta = pinta 
+        self.valor= valor 
+
+class Carta: 
+    def __init__(self) -> None:
+        pass
+
+@dataclass 
+class Mano: 
+    def __init__(self, cartas: list[Carta]) -> None:
+        self.cartas = cartas 
+
+    def es_blackjack(self)-> bool: 
+        if self.cartas.__len__() >2: 
+            return False
+        
+        return self.calcular_valor() == 21 
+    
+    def agragar_carta(self, carta: Carta): 
+        self.cartas.append(carta)
+
+    def calcular_valor(self): 
+        valores = [c.valor for c in self.cartas]
+        return sum(valores)
+    
+    def destapar(self): 
+        for c in self.cartas: 
+            c.tapada = False 
+
+@dataclass 
+class Jugador: 
+    mano: Mano 
+    def __init__(self,nombre:str, fichas:str ) -> None:
+        self.nombre = nombre
+        self.fichas = fichas 
+
+    def inicializar_mano(self, cartas: list[Carta]): 
+        self.mano = Mano(cartas)
+
+    def recibir_carta(self, carta: Carta): 
+        self.mano.agragar_carta(carta)
+
+    def agreagar_fichas(self,fichas:int): 
+        self.fichas += fichas
+
+    def tiene_fichas(self): 
+        return self.fichas > 0 
+    
+@dataclass 
+class Baraja: 
+    cartas: list[Carta]
+    def __init__(self) -> None:
+        self.carta.append(Carta("ESPADA", "1"))
+        self.carta.append(Carta("ESPADA", "2"))
+        self.carta.append(Carta("ESPADA", "3"))
+        self.carta.append(Carta("ESPADA", "4"))
+        self.carta.append(Carta("ESPADA", "5"))
+        self.carta.append(Carta("ESPADA", "6"))
+        self.carta.append(Carta("ESPADA", "7"))
+        self.carta.append(Carta("ESPADA", "8"))
+        self.carta.append(Carta("ESPADA", "9"))
+        self.carta.append(Carta("ESPADA", "10"))
+        self.carta.append(Carta("ESPADA", "J"))
+        self.carta.append(Carta("ESPADA", "Q"))
+        self.carta.append(Carta("ESPADA", "K"))
+
+    def revolver(self): 
+        random.shuffle(self.cartas)
+
+    def repartir_carta(self, tapada: bool) -> Optional[cartas]: 
+        if len(self.cartas) > 0: 
+            carta = self.cartas.pop()
+            carta.tapada = tapada 
+            return carta 
+        return None 
+    
+@dataclass    
+class Casa: 
+    mano: Mano
+    def inicializar_mano(self, cartas: list[Carta]): 
+        self.mano = Mano(cartas)
+
+    def recibir_carta(self, carta: Carta): 
+        self.mano.agragar_carta(carta)
+        
+@dataclass 
+class Blackjack: 
+    apuesta_actual: int
+    jugador : Jugador
+    cupier : Casa
+    baraja: Baraja
+
+    def registrar_usurio(self, nombre: str): 
+        self.jugador = Jugador(nombre, 100)
+
+    def iniciar_juego(self, apuesta: int): 
+        self.baraja = Baraja()
+        self.baraja.revolver()
+        self.jugador.recibir_carta(self.baraja.repartir_carta(False))
+        self.jugador.recibir_carta(self.baraja.repartir_carta(False))
+
+        self.cupier.recibir_carta(self.baraja.repartir_carta(False))
+        self.cupier.recibir_carta(self.baraja.repartir_carta(True))
+
+        if self.jugador.mano.es_blackjack():
+            return None  
+
+    def repartir_carta_a_jugador(self): 
+        self.jugador.recibir_carta(self.baraja.repartir_carta())
+        
+
+    def jugador_perdio(self): 
+        return self.jugador.mano.calcular_valor()> 21
+    
+    def destapar_mano_casa(self): 
+        for c in self.cupier.mano.cartas: 
+            c.tapada = False 
+
+    def casa_puede_pedir(self): 
+        valor_mano_casa = self.cupier.mano.calcular_valor()
+        valor_mano_casa = self.jugador.mano.calcular_valor()
+
+        if valor_mano_casa < valor_mano_jugador() and valor_mano_casa(): 
+            return True 
+        return False
+    
+    def repartir_carta_a_casa(self): 
+        self.cupier.recibir_carta(self.baraja.repartir_carta())
+        
+    def jugador_gano(self): 
+        return self.jugador.mano.calcular_valor() > self.cupier.mano.calcular_valor()
+
+    def casa_gano(self): 
+        return self.cupier.mano.calcular_valor() > self.jugador.mano.calcular_valor()
+    
+    def hay_empate(self): 
+        return self.cupier.mano.calcular_valor() == self.jugador.mano.calcular_valor()
